@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - IP Platform</title>
+</head>
+<body>
+
+    <h2>Register</h2>
+
+    <form onsubmit="registerUser(event)">
+        <input type="text" id="name" placeholder="Enter Name" required><br><br>
+        <input type="email" id="email" placeholder="Enter Email" required><br><br>
+        <input type="password" id="password" placeholder="Enter Password" required><br><br>
+        <button type="submit">Register</button>
+    </form>
+
+    <script>
+        function registerUser(event) {
+            event.preventDefault();
+
+            let user = {
+                name: document.getElementById("name").value,
+                email: document.getElementById("email").value,
+                password: document.getElementById("password").value
+            };
+
+            localStorage.setItem("user", JSON.stringify(user));
+
+            alert("Registration Successful!");
+
+            // Navigate to Login Page
+            window.location.href = "login.html";
+        }
+    </script>
+
+</body>
+</html>
