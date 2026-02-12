@@ -48,11 +48,11 @@ public class IpAsset {
 
     @OneToMany(mappedBy = "ipAsset", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<Subscriptions> subscription;
+    private List<Subscription> subscription;
 
     @OneToMany(mappedBy = "ipAsset",cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<Notifications> notifications;
+    private List<Notification> notifications;
 
     @OneToMany(mappedBy = "ipAsset",cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore

@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @Table(name="users")
-public class Users {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,11 +32,11 @@ public class Users {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<Subscriptions> subscriptions;
+    private List<Subscription> subscriptions;
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
-    private List<Notifications> notifications;
+    private List<Notification> notifications;
 
 
 }
