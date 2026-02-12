@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile - IP Intelligence Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f5f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 500px;
+            margin: 60px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .info {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 6px 0;
+        }
+
+        button {
+            padding: 8px 15px;
+            margin: 8px 5px 0 0;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .primary { background-color: #007bff; color: white; }
+        .danger { background-color: red; color: white; }
+        .secondary { background-color: gray; color: white; }
+
+        .section {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>User Profile</h2>
+
+    <!-- User Details -->
+    <div class="info"><strong>Name:</strong> <span id="displayName"></span></div>
+    <div class="info"><strong>Email:</strong> <span id="displayEmail"></span></div>
+
+    <!-- Edit Profile Section -->
+    <div class="section">
+        <h3>Edit Profile</h3>
+        <input type="text" id="newName" placeholder="New Name">
+        <input type="email" id="newEmail" placeholder="New Email">
+        <button class="primary" onclick="updateProfile()">Update Profile</button>
+    </div>
+
+    <!-- Change Password Section -->
+    <div class="section">
+        <h3>Change Password</h3>
+        <input type="password" id="newPassword" placeholder="New Password">
+        <button class="primary" onclick="changePassword()">Change Password</button>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="section">
+        <button class="secondary" onclick="goHome()">Back to Home</button>
+        <button class="danger" onclick="logout()">Logout</button>
+    </div>
+
+</div>
+
+<script>
+    let user = JSON.parse(localStorage.getItem("user"));
+
+    // Redirect if not logged in
+    if (!user) {
+        window.location.href = "login.html";
+    } else {
+        document.getElementById("displayName").innerText = user.name;
+        document.getElementById("displayEmail").innerText = user.email;
+    }
+
+    function updateProfile() {
+        let newName = document.getElementById("newName").value;
+        let newEmail = document.getElementById("newEmail").value;
+
+        if (newName) user.name = newName;
+        if (newEmail) user.email = newEmail;
+
+        localStorage.setItem("user", JSON.stringify(user));
+
+        alert("Profile Updated Successfully!");
+
+        location.reload();
+    }
+
+    function changePassword() {
+        let newPassword = document.getElementById("newPassword").value;
+
+        if (!newPassword) {
+            alert("Enter new password");
+            return;
+        }
+
+        user.password = newPassword;
+        localStorage.setItem("user", JSON.stringify(user));
+
+        alert("Password Changed Successfully!");
+        document.getElementById("newPassword").value = "";
+    }
+
+    function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "login.html";
+    }
+
+    function goHome() {
+        window.location.href = "home.html";
+    }
+</script>
+
+</body>
+</html>
