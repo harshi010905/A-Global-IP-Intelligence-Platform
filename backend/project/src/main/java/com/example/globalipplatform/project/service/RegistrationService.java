@@ -1,5 +1,6 @@
 package com.example.globalipplatform.project.service;
 
+import com.example.globalipplatform.project.DTO.Role;
 import com.example.globalipplatform.project.DTO.UserRequest;
 import com.example.globalipplatform.project.DTO.UserResponse;
 import com.example.globalipplatform.project.entity.User;
@@ -13,7 +14,7 @@ public class RegistrationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     public RegistrationService(UserRepository userRepository,
-                               PasswordEncoder passwordEncoder, User users, UserResponse userResponse) {
+                               PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -29,9 +30,10 @@ public class RegistrationService {
         registerUser.setUsername(request.getUsername());
         registerUser.setEmail(request.getEmail());
         registerUser.setPassword(passwordEncoder.encode(request.getPassword()));
-       registerUser.setRole(request.getRole());
+        registerUser.setRole(Role.valueOf(request.getRole().toUpperCase()));
 
-     User savedUser=userRepository.save(registerUser);
+
+        User savedUser=userRepository.save(registerUser);
 
      return new UserResponse(
              savedUser.getId(),

@@ -24,6 +24,7 @@ public class JWTService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    //generate the token
     public String generateToken(UserDetails userDetails) {
 
         Map<String, Object> claims = new HashMap<>();

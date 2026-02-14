@@ -20,8 +20,11 @@ public class UserPrincipal implements UserDetails {
     //it is for the roles extraction
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(user.getRole()));
+        return List.of(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+        );
     }
+
 
     @Override
     public String getPassword() {

@@ -1,6 +1,7 @@
 package com.example.globalipplatform.project.service;
 
 
+import com.example.globalipplatform.project.DTO.LoginCode;
 import com.example.globalipplatform.project.config.JWTService;
 import com.example.globalipplatform.project.config.UserPrincipal;
 import com.example.globalipplatform.project.entity.User;
@@ -20,7 +21,7 @@ public class LoginService {
     private final EmailService mailService;
     private final JWTService jwtService;
 
-    //it is used for thread safe
+    //it is used for thread safe and store the randomcodes
     private final Map<String, LoginCode> loginCodes = new ConcurrentHashMap<>();
 
     //it is used for generate the codes randomly
@@ -90,22 +91,4 @@ public class LoginService {
         return jwtService.generateToken(new UserPrincipal(user));
     }
 
-    private static class LoginCode {
-
-        private final String code;
-        private final LocalDateTime expiry;
-
-        public LoginCode(String code, LocalDateTime expiry) {
-            this.code = code;
-            this.expiry = expiry;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        public LocalDateTime getExpiry() {
-            return expiry;
-        }
-    }
 }

@@ -1,6 +1,7 @@
 package com.example.globalipplatform.project.entity;
 
 
+import com.example.globalipplatform.project.DTO.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -25,7 +26,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
     private String password;
-    private String role;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
