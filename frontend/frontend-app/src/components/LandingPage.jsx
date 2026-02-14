@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
+
 import {
   Search,
   BarChart3,
@@ -27,13 +29,18 @@ const LandingPage = () => {
             <a href="#usecases" className="hover:text-blue-600 transition">Use Cases</a>
           </nav>
 
-          <div className="hidden md:flex gap-4">
-            <button className="text-sm hover:text-blue-600 transition">
+          <div className="hidden md:flex gap-4 ">
+            <Link to="/login" className="text-sm hover:text-blue-600 transition">
               Login
-            </button>
-            <button className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+            </Link>
+
+            <Link
+              to="/register"
+              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+            >
               Get Started
-            </button>
+            </Link>
+
           </div>
 
         </div>

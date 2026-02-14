@@ -1,11 +1,14 @@
-// import AdminDashboard from "./src/Component/AdminDashboard";
+import { BrowserRouter as Router } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import AppRoutes from "./routes/AppRoutes";
 
-
-
-import LandingPage from "./components/LandingPage";
 function App() {
   return (
-    <LandingPage/>
+    <Router>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </Router>
   );
 }
 
