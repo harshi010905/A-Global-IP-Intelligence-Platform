@@ -100,7 +100,7 @@ const Register = () => {
               <input
                 type="text"
                 name="firstName"
-                placeholder="John"
+                placeholder="First Name"
                 value={formData.firstName}
                 onChange={handleChange}
                 className={`w-full px-4 py-2 rounded-lg border transition-all ${
@@ -120,7 +120,7 @@ const Register = () => {
               <input
                 type="text"
                 name="lastName"
-                placeholder="Doe"
+                placeholder="last Name"
                 value={formData.lastName}
                 onChange={handleChange}
                 className={`w-full px-4 py-2 rounded-lg border transition-all ${

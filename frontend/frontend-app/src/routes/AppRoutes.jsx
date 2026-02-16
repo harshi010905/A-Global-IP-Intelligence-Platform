@@ -5,20 +5,21 @@ import Register from "../Pages/Register";
 import UserDashboard from "../Pages/UserDashboard";
 import AdminDashboard from "../Pages/AdminDashboard";
 import AnalystDashboard from "../Pages/AnalystDashboard";
-// import LandingPage from "../pages/LandingPage";
-// import Login from "../pages/Login";
-// import Register from "../pages/Register";
-// import UserDashboard from "../pages/UserDashboard";
-// import AdminDashboard from "../pages/AdminDashboard";
-// import AnalystDashboard from "../pages/AnalystDashboard";
 import ProtectedRoute from "./ProtectedRoute";
-
+import Search from "../Pages/Search";
+import  IPDetails from "../Pages/IPDetails";
+// import Analytics from "./pages/Analytics";
+// import Alerts from "./pages/Alerts";
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<LandingPage/>} />
       <Route path="/login" element={<Login/>} />
       <Route path="/register" element={<Register/>} />
+      <Route path="/search" element={<Search/>} />
+      <Route path="/ip/:id" element={<IPDetails/>} />
+      {/* <Route path="/analytics" element={<Analytics />} />
+      <Route path="/alerts" element={<Alerts />} /> */}
 
       <Route
         path="/user-dashboard"
