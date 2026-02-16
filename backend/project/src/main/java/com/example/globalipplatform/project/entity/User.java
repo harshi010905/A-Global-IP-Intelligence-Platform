@@ -1,11 +1,13 @@
 package com.example.globalipplatform.project.entity;
 
 
+import com.example.globalipplatform.project.DTO.AuthProvider;
 import com.example.globalipplatform.project.DTO.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,9 +27,11 @@ public class User {
     @Email
     @Column(nullable = false, unique = true)
     private String email;
+
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
 
     private LocalDateTime createdAt = LocalDateTime.now();

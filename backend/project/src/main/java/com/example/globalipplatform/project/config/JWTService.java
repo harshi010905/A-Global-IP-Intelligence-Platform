@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -63,4 +64,14 @@ public class JWTService {
     private boolean isExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
+
+    public String extractRole(String token) {
+        Claims claims = extractAllClaims(token);
+
+        List<Map<String, String>> roles =
+                (List<Map<String, String>>) claims.get("roles");
+
+        return roles.get(0).get("authority").replace("ROLE_", "");
+    }
+
 }
