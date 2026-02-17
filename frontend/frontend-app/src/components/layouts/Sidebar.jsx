@@ -8,20 +8,89 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Users,
+  Settings,
+  FileText,
+  Activity
 } from "lucide-react";
 import { useState } from "react";
 
 const Sidebar = () => {
   const location = useLocation();
-  const { logout, user } = useAuth();
+  const { logout, user, hasRole } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
-  const menu = [
-    { name: "Dashboard", path: `/${user?.role}-dashboard`, icon: LayoutDashboard },
-    { name: "Search", path: "/search", icon: Search },
-    { name: "Analytics", path: "/analytics", icon: BarChart3 },
-    { name: "Alerts", path: "/alerts", icon: Bell },
-  ];
+  // Menu items based on role
+  const getMenuItems = () => {
+    const items = [
+      { 
+        name: "Dashboard", 
+        path: `/${user?.role?.toLowerCase()}-dashboard`, 
+        icon: LayoutDashboard,
+        roles: ['USER', 'ANALYST', 'ADMIN']
+      },
+      { 
+        name: "Search", 
+        path: "/search", 
+        icon: Search,
+        roles: ['USER', 'ANALYST', 'ADMIN']
+      },
+      { 
+        name: "Alerts", 
+        path: "/alerts", 
+        icon: Bell,
+        roles: ['USER', 'ANALYST', 'ADMIN']
+      },
+    ];
+
+    // Analyst and Admin get Analytics
+    if (hasRole('ANALYST')) {
+      items.push({ 
+        name: "Analytics", 
+        path: "/analytics", 
+        icon: BarChart3,
+        roles: ['ANALYST', 'ADMIN']
+      });
+    }
+
+    // Admin only items
+    if (hasRole('ADMIN')) {
+      items.push(
+        { 
+          name: "User Management", 
+          path: "/admin/users", 
+          icon: Users,
+          roles: ['ADMIN']
+        },
+        { 
+          name: "System Logs", 
+          path: "/admin/logs", 
+          icon: FileText,
+          roles: ['ADMIN']
+        },
+        { 
+          name: "Activity", 
+          path: "/admin/activity", 
+          icon: Activity,
+          roles: ['ADMIN']
+        }
+      );
+    }
+
+    return items;
+  };
+
+  const menu = getMenuItems();
+
+  // Get role display name
+  const getRoleDisplay = () => {
+    const roleMap = {
+      'ADMIN': 'Administrator',
+      'ANALYST': 'Data Analyst',
+      'USER': 'Regular User'
+    };
+    return roleMap[user?.role] || user?.role;
+  };
 
   return (
     <div
@@ -44,12 +113,20 @@ const Sidebar = () => {
         </button>
       </div>
 
-      {/* Role Badge */}
-      {!collapsed && (
-        <div className="mb-6">
-          <span className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-medium">
-            {user?.role?.toUpperCase()}
-          </span>
+      {/* User Info & Role Badge */}
+      {!collapsed && user && (
+        <div className="mb-6 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            {user.username}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            {user.email}
+          </p>
+          <div className="mt-2">
+            <span className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-medium">
+              {getRoleDisplay()}
+            </span>
+          </div>
         </div>
       )}
 
@@ -80,7 +157,7 @@ const Sidebar = () => {
       {/* Logout */}
       <button
         onClick={logout}
-        className="flex items-center gap-3 p-3 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 text-red-600 transition"
+        className="flex items-center gap-3 p-3 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 text-red-600 transition mt-4"
       >
         <LogOut size={18} />
         {!collapsed && "Logout"}

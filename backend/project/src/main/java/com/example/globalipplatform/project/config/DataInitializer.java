@@ -17,23 +17,34 @@ public class DataInitializer {
             // Create test admin user if not exists
             if (!userRepository.existsByEmail("admin@test.com")) {
                 User admin = new User();
-                admin.setUsername("admin");
+                admin.setUsername("Admin User");
                 admin.setEmail("admin@test.com");
                 admin.setPassword(passwordEncoder.encode("admin123"));
                 admin.setRole(Role.ADMIN);
                 userRepository.save(admin);
-                System.out.println("Admin user created - email: admin@test.com, password: admin123");
+                System.out.println("✅ Admin user created - email: admin@test.com, password: admin123");
+            }
+
+            // Create test analyst user if not exists
+            if (!userRepository.existsByEmail("analyst@test.com")) {
+                User analyst = new User();
+                analyst.setUsername("Analyst User");
+                analyst.setEmail("analyst@test.com");
+                analyst.setPassword(passwordEncoder.encode("analyst123"));
+                analyst.setRole(Role.ANALYST);
+                userRepository.save(analyst);
+                System.out.println("✅ Analyst user created - email: analyst@test.com, password: analyst123");
             }
 
             // Create test regular user if not exists
             if (!userRepository.existsByEmail("user@test.com")) {
                 User user = new User();
-                user.setUsername("user");
+                user.setUsername("Regular User");
                 user.setEmail("user@test.com");
                 user.setPassword(passwordEncoder.encode("user123"));
                 user.setRole(Role.USER);
                 userRepository.save(user);
-                System.out.println("Regular user created - email: user@test.com, password: user123");
+                System.out.println("✅ Regular user created - email: user@test.com, password: user123");
             }
         };
     }

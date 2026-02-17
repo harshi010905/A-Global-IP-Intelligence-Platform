@@ -7,34 +7,50 @@ import AdminDashboard from "../Pages/AdminDashboard";
 import AnalystDashboard from "../Pages/AnalystDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import Search from "../Pages/Search";
-import  IPDetails from "../Pages/IPDetails";
-// import Analytics from "./pages/Analytics";
-// import Alerts from "./pages/Alerts";
+import IPDetails from "../Pages/IPDetails";
+import Alerts from "../Pages/Alerts";        
+import Analytics from "../Pages/Analytics";  
+
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage/>} />
-      <Route path="/login" element={<Login/>} />
-      <Route path="/register" element={<Register/>} />
-      <Route path="/search" element={<Search/>} />
-      <Route path="/ip/:id" element={<IPDetails/>} />
-      {/* <Route path="/analytics" element={<Analytics />} />
-      <Route path="/alerts" element={<Alerts />} /> */}
-
+      {/* Public Routes */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      
+      {/* Protected Routes */}
       <Route
-        path="/user-dashboard"
+        path="/search"
         element={
-          <ProtectedRoute role="user">
-            <UserDashboard/>
+          <ProtectedRoute>
+            <Search />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ip/:id"
+        element={
+          <ProtectedRoute>
+            <IPDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/alerts"
+        element={
+          <ProtectedRoute>
+            <Alerts />          
           </ProtectedRoute>
         }
       />
 
+      {/* Role-specific dashboards */}
       <Route
-        path="/admin-dashboard"
+        path="/user-dashboard"
         element={
-          <ProtectedRoute role="admin">
-            <AdminDashboard/>
+          <ProtectedRoute role="USER">
+            <UserDashboard />
           </ProtectedRoute>
         }
       />
@@ -42,13 +58,51 @@ const AppRoutes = () => {
       <Route
         path="/analyst-dashboard"
         element={
-          <ProtectedRoute role="analyst">
-            <AnalystDashboard/>
+          <ProtectedRoute role="ANALYST">
+            <AnalystDashboard />
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute role="ANALYST">
+            <Analytics />       
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin-dashboard"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <div>User Management (Coming Soon)</div>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/logs"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <div>System Logs (Coming Soon)</div>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="*" element={<div>404 - Page Not Found</div>} />
     </Routes>
   );
 };
 
-export default AppRoutes;
+export default AppRoutes;   

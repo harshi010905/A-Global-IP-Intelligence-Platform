@@ -40,13 +40,24 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/oauth2/**").permitAll()
-                .requestMatchers("/login/**").permitAll()
                 .requestMatchers("/public/**").permitAll()
-                // Role-based endpoints
+                .requestMatchers("/api/test/public").permitAll()
+                
+                // User endpoints (USER, ANALYST, ADMIN can access)
+                .requestMatchers("/api/test/user").hasAnyRole("USER", "ANALYST", "ADMIN")
+                .requestMatchers("/Users/**").hasAnyRole("USER", "ANALYST", "ADMIN")
+                .requestMatchers("/api/user/**").hasAnyRole("USER", "ANALYST", "ADMIN")
+                
+                // Analyst endpoints (ANALYST and ADMIN can access)
+                .requestMatchers("/api/analyst/**").hasAnyRole("ANALYST", "ADMIN")
+                .requestMatchers("/api/analytics/**").hasAnyRole("ANALYST", "ADMIN")
+                .requestMatchers("/api/reports/**").hasAnyRole("ANALYST", "ADMIN")
+                
+                // Admin endpoints (ADMIN only)
                 .requestMatchers("/Admin/**").hasRole("ADMIN")
-                .requestMatchers("/Users/**").hasRole("USER")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                
                 // All other requests need authentication
                 .anyRequest().authenticated()
             )
@@ -55,7 +66,6 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth -> oauth
                 .successHandler(oAuth2SuccessHandler)
-                .failureUrl("/login?error=true")
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -65,10 +75,25 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://127.0.0.1:3000"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type", 
+            "X-Requested-With", 
+            "Accept", 
+            "Origin",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type"
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         
@@ -87,4 +112,4 @@ public class SecurityConfig {
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-}
+}   
