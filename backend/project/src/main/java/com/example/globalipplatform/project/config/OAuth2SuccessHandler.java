@@ -27,16 +27,28 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
+        
+        // If email is null for GitHub, try to get it differently
+        if (email == null) {
+            email = oAuth2User.getAttribute("login") + "@github.oauth";
+        }
 
         UserPrincipal userPrincipal = new UserPrincipal(
                 email,
-                Role.USER
+                Role.USER  // Default role for OAuth2 users
         );
 
         String token = jwtService.generateToken(userPrincipal);
 
-        response.getWriter().write("JWT: " + token);
-
-        // response.sendRedirect("http://localhost:3000/oauth2-success?token=" + token);
+        // Redirect to frontend with token
+        String redirectUrl = "http://localhost:3000/oauth2-success?token=" + token;
+        
+        // You can also return JSON response for API clients
+        if (request.getHeader("Accept") != null && request.getHeader("Accept").contains("application/json")) {
+            response.setContentType("application/json");
+            response.getWriter().write("{\"token\":\"" + token + "\", \"tokenType\":\"Bearer\"}");
+        } else {
+            response.sendRedirect(redirectUrl);
+        }
     }
 }

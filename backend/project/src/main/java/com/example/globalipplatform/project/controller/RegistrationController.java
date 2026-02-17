@@ -7,19 +7,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 public class RegistrationController {
 
-    private final RegistrationService userService;
+    private final RegistrationService registrationService;
 
-    public RegistrationController(RegistrationService userService) {
-        this.userService = userService;
+    public RegistrationController(RegistrationService registrationService) {
+        this.registrationService = registrationService;
     }
 
-    @PostMapping("/registration")
-    public ResponseEntity<UserResponse> register(@RequestBody UserRequest user) {
-
-
-        return ResponseEntity.ok(userService.register(user));
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody UserRequest request) {
+        try {
+            UserResponse response = registrationService.register(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

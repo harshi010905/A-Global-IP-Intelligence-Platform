@@ -5,43 +5,55 @@ import com.example.globalipplatform.project.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 
-public class UserPrincipal implements UserDetails {
+public class UserPrincipal implements UserDetails, OAuth2User {
 
     private final String email;
+    private final String password;
     private final Role role;
+    private Map<String, Object> attributes;
 
     public UserPrincipal(User user) {
         this.email = user.getEmail();
+        this.password = user.getPassword();
         this.role = user.getRole();
     }
 
-
-
     public UserPrincipal(String email, Role role) {
         this.email = email;
+        this.password = "";
         this.role = role;
     }
 
-    //it is for the roles extraction
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(
-                new SimpleGrantedAuthority("ROLE_" + role.name())
+        return Collections.singletonList(
+            new SimpleGrantedAuthority("ROLE_" + role.name())
         );
     }
 
-
     @Override
     public String getPassword() {
-        return "";
+        return password;
     }
 
     @Override
     public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public String getName() {
         return email;
     }
 
