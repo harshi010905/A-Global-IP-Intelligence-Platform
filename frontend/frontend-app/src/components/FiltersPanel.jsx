@@ -1,65 +1,71 @@
+import { useState } from "react";
+
 const FiltersPanel = ({ filters, setFilters }) => {
+  const [open, setOpen] = useState(false);
+  const options = ["All", "WIPO", "USPTO", "EPO", "TMView"];
+
+  const selectOption = (value) => {
+    setFilters({ ...filters, jurisdiction: value === "All" ? "" : value });
+    setOpen(false);
+  };
+
   return (
-    <div className="bg-[#0F172A] p-6 rounded-2xl border border-white/10">
-      <h3 className="text-lg font-semibold mb-6 text-white">
-        Filters
-      </h3>
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold text-white">Filters</h3>
 
-      {/* IP Type */}
-      <div className="mb-6">
-        <label className="block text-sm mb-2 text-gray-400">
-          IP Type
-        </label>
-
-        <select
-          value={filters.type}
-          onChange={(e) =>
-            setFilters({ ...filters, type: e.target.value })
-          }
-          className="w-full bg-[#1E293B] border border-white/20 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        >
-          <option value="">All</option>
-          <option value="Patent">Patent</option>
-          <option value="Trademark">Trademark</option>
-          <option value="Design">Design</option>
-        </select>
-      </div>
-
-      {/* Status */}
-      <div className="mb-6">
-        <label className="block text-sm mb-2 text-gray-400">
-          Status
-        </label>
-
-        <select
-          value={filters.status}
-          onChange={(e) =>
-            setFilters({ ...filters, status: e.target.value })
-          }
-          className="w-full bg-[#1E293B] border border-white/20 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        >
-          <option value="">All</option>
-          <option value="Granted">Granted</option>
-          <option value="Pending">Pending</option>
-          <option value="Expired">Expired</option>
-        </select>
-      </div>
-
-      {/* Country */}
+      {/* Inventor */}
       <div>
-        <label className="block text-sm mb-2 text-gray-400">
-          Country
-        </label>
-
+        <label className="block text-sm mb-2 text-gray-300">Inventor</label>
         <input
           type="text"
-          value={filters.country}
+          name="inventor"
+          value={filters.inventor}
           onChange={(e) =>
-            setFilters({ ...filters, country: e.target.value })
+            setFilters({ ...filters, inventor: e.target.value })
           }
-          placeholder="e.g. India"
-          className="w-full bg-[#1E293B] border border-white/20 rounded-xl p-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full p-2 rounded-lg bg-[#020617] border border-white/20 text-white"
         />
+      </div>
+
+      {/* Assignee */}
+      <div>
+        <label className="block text-sm mb-2 text-gray-300">Assignee</label>
+        <input
+          type="text"
+          name="assignee"
+          value={filters.assignee}
+          onChange={(e) =>
+            setFilters({ ...filters, assignee: e.target.value })
+          }
+          className="w-full p-2 rounded-lg bg-[#020617] border border-white/20 text-white"
+        />
+      </div>
+
+      {/* Jurisdiction Dropdown */}
+      <div className="relative">
+        <label className="block text-sm mb-2 text-gray-300">Jurisdiction</label>
+
+        <div
+          onClick={() => setOpen(!open)}
+          className="w-full p-2 rounded-lg bg-[#020617] border border-white/20 text-white cursor-pointer flex justify-between"
+        >
+          {filters.jurisdiction || "All"}
+          <span>▲</span>
+        </div>
+
+        {open && (
+          <div className="absolute bottom-full mb-2 w-full bg-[#020617] border border-white/20 rounded-lg shadow-lg">
+            {options.map((option) => (
+              <div
+                key={option}
+                onClick={() => selectOption(option)}
+                className="p-2 hover:bg-blue-600 cursor-pointer text-white"
+              >
+                {option}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
