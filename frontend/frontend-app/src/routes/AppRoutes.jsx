@@ -31,7 +31,7 @@ const AppRoutes = () => {
       <Route
         path="/search"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute role="ANALYST">
             <Search />
           </ProtectedRoute>
         }

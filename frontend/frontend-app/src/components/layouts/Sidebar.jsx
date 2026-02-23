@@ -33,7 +33,7 @@ const Sidebar = () => {
         name: "Search", 
         path: "/search", 
         icon: Search,
-        roles: ['USER', 'ANALYST', 'ADMIN']
+        roles: ['ANALYST', 'ADMIN']
       },
       { 
         name: "Alerts", 
