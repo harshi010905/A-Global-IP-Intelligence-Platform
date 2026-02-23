@@ -45,5 +45,7 @@ public class User {
     @JsonIgnore
     private List<Notification> notifications;
 
+    private Long analystRequestId;
+
 
 }

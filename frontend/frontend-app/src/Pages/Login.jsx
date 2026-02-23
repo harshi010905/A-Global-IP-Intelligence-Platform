@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const Login = () => {
   const { login, error: authError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -16,11 +17,27 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
+
+  // Check for message from registration
+  useEffect(() => {
+    if (location.state?.message) {
+      setInfoMessage(location.state.message);
+      // Clear the state so message doesn't show on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/user-dashboard");
+      const role = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")).role : null;
+      const rolePath = {
+        'ADMIN': '/admin-dashboard',
+        'ANALYST': '/analyst-dashboard',
+        'USER': '/user-dashboard'
+      };
+      navigate(rolePath[role] || "/");
     }
   }, [isAuthenticated, navigate]);
 
@@ -58,14 +75,7 @@ const Login = () => {
 
     if (result.success) {
       console.log("✅ Login successful, redirecting...");
-      // Navigate based on role
-      const rolePath = {
-        'ADMIN': '/admin-dashboard',
-        'ANALYST': '/analyst-dashboard',
-        'USER': '/user-dashboard'
-      };
-      
-      navigate(rolePath[result.user.role] || "/");
+      // Navigation will be handled by the useEffect above
     } else {
       setLoginError(result.error);
     }
@@ -94,6 +104,11 @@ const Login = () => {
         email: 'admin@test.com',
         password: 'admin123'
       });
+    } else if (type === 'analyst') {
+      setFormData({
+        email: 'analyst@test.com',
+        password: 'analyst123'
+      });
     } else if (type === 'user') {
       setFormData({
         email: 'user@test.com',
@@ -115,6 +130,13 @@ const Login = () => {
             Sign in to access your dashboard
           </p>
         </div>
+
+        {/* Info Message (from registration) */}
+        {infoMessage && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+            {infoMessage}
+          </div>
+        )}
 
         {/* Error Message */}
         {(loginError || authError) && (
@@ -218,7 +240,6 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Quick Test Buttons */}
         
 
         {/* Footer */}
@@ -229,12 +250,7 @@ const Login = () => {
           </Link>
         </p>
 
-        {/* Test Credentials Info */}
-        <div className="mt-6 text-xs text-gray-400 text-center bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-          <p className="font-medium mb-1">📋 Test Credentials:</p>
-          <p>Admin: admin@test.com / admin123</p>
-          
-        </div>
+       
 
       </div>
     </div>

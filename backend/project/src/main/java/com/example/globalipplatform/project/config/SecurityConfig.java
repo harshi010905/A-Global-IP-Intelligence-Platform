@@ -2,6 +2,7 @@ package com.example.globalipplatform.project.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -17,7 +18,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -38,23 +38,30 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/oauth2/**").permitAll()
-                .requestMatchers("/public/**").permitAll()
-                .requestMatchers("/api/test/public").permitAll()
+                // ✅ Public endpoints - ORDER MATTERS! Put specific paths first
+                .requestMatchers(
+                    "/api/analyst-registration/test",
+                    "/api/analyst-registration/submit",
+                    "/api/analyst-registration/**",
+                    "/api/auth/**",
+                    "/oauth2/**",
+                    "/public/**",
+                    "/api/test/public",
+                     "/api/files/**", 
+                     "/uploads/**"
+                ).permitAll()
                 
-                // User endpoints (USER, ANALYST, ADMIN can access)
+                // User endpoints
                 .requestMatchers("/api/test/user").hasAnyRole("USER", "ANALYST", "ADMIN")
                 .requestMatchers("/Users/**").hasAnyRole("USER", "ANALYST", "ADMIN")
                 .requestMatchers("/api/user/**").hasAnyRole("USER", "ANALYST", "ADMIN")
                 
-                // Analyst endpoints (ANALYST and ADMIN can access)
+                // Analyst endpoints
                 .requestMatchers("/api/analyst/**").hasAnyRole("ANALYST", "ADMIN")
                 .requestMatchers("/api/analytics/**").hasAnyRole("ANALYST", "ADMIN")
                 .requestMatchers("/api/reports/**").hasAnyRole("ANALYST", "ADMIN")
                 
-                // Admin endpoints (ADMIN only)
+                // Admin endpoints
                 .requestMatchers("/Admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
@@ -64,6 +71,7 @@ public class SecurityConfig {
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+            // Disable OAuth2 login for API endpoints
             .oauth2Login(oauth -> oauth
                 .successHandler(oAuth2SuccessHandler)
             )
@@ -112,4 +120,4 @@ public class SecurityConfig {
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-}   
+}

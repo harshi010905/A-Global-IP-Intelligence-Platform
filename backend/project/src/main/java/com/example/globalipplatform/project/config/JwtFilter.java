@@ -41,6 +41,32 @@ public class JwtFilter extends OncePerRequestFilter {
             @NonNull FilterChain chain)
             throws ServletException, IOException {
 
+
+        // In JwtFilter.java, add this at the beginning of doFilterInternal
+String requestPath = request.getServletPath();
+if (requestPath.startsWith("/uploads/") || requestPath.startsWith("/api/files/")) {
+    // For file access, check if token is in URL
+    String token = request.getParameter("token");
+    if (token != null && !token.isEmpty()) {
+        // Process token from URL parameter
+        try {
+            String email = jwtService.extractUsername(token);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            if (jwtService.validateToken(token, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        } catch (Exception e) {
+            logger.error("Error validating token from URL: {}", e.getMessage());
+        }
+    }
+}
+
+
         if (request.getServletPath().contains("/api/auth/")) {
             chain.doFilter(request, response);
             return;

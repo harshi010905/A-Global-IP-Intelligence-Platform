@@ -371,7 +371,6 @@ const Register = () => {
               disabled={loading}
             >
               <option value="USER">👤 Regular User</option>
-              <option value="ANALYST">📊 Analyst</option>
             </select>
             <p className="text-xs text-gray-400 mt-1">
             </p>

@@ -10,6 +10,10 @@ import Search from "../Pages/Search";
 import IPDetails from "../Pages/IPDetails";
 import Alerts from "../Pages/Alerts";        
 import Analytics from "../Pages/Analytics";  
+import RegistrationChoice from "../Pages/RegistrationChoice";
+import AnalystRegistration from "../Pages/AnalystRegistration";
+import AdminRequestManagement from "../Pages/AdminRequestManagement";
+
 
 const AppRoutes = () => {
   return (
@@ -17,7 +21,11 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/register" element={<RegistrationChoice />} />
+
+      <Route path="/register/user" element={<Register />} />
+      <Route path="/register/analyst" element={<AnalystRegistration />} />
+
       
       {/* Protected Routes */}
       <Route
@@ -99,6 +107,15 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+<Route
+  path="/admin/analyst-requests"
+  element={
+    <ProtectedRoute role="ADMIN">
+      <AdminRequestManagement />
+    </ProtectedRoute>
+  }
+/>
 
       <Route path="*" element={<div>404 - Page Not Found</div>} />
     </Routes>

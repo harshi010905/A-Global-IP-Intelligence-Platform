@@ -30,7 +30,7 @@ const LandingPage = () => {
           </nav>
 
           <div className="hidden md:flex gap-4 ">
-            <Link to="/login" className="text-sm hover:text-blue-600 transition">
+            <Link to="/login" className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
               Login
             </Link>
 

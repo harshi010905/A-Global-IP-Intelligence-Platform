@@ -57,6 +57,12 @@ const Sidebar = () => {
     if (hasRole('ADMIN')) {
       items.push(
         { 
+  name: "Analyst Requests", 
+  path: "/admin/analyst-requests", 
+  icon: FileText,
+  roles: ['ADMIN']
+},
+        { 
           name: "User Management", 
           path: "/admin/users", 
           icon: Users,
