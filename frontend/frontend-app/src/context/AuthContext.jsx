@@ -18,7 +18,7 @@ api.interceptors.request.use(
   (config) => {
     console.log(`🚀 ${config.method.toUpperCase()} request to ${config.url}`, config.data);
     const token = localStorage.getItem("accessToken");
-    if (token) {
+    if (token && !config.url.includes("/auth/login") && !config.url.includes("/auth/register")) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem("accessToken");
         const storedUser = localStorage.getItem("user");
-        
+
         if (token && storedUser) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
@@ -90,11 +90,11 @@ export const AuthProvider = ({ children }) => {
       };
 
       console.log("📤 Sending registration data:", registerData);
-      
+
       const response = await api.post("/auth/register", registerData);
-      
+
       console.log("✅ Registration successful:", response.data);
-      
+
       return {
         success: true,
         data: response.data,
@@ -102,9 +102,9 @@ export const AuthProvider = ({ children }) => {
       };
     } catch (err) {
       console.error("❌ Registration error:", err);
-      
+
       let errorMessage = "Registration failed. ";
-      
+
       if (err.response) {
         // Server responded with error
         if (typeof err.response.data === 'string') {
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         errorMessage += err.message;
       }
-      
+
       setError(errorMessage);
       return {
         success: false,
@@ -139,9 +139,9 @@ export const AuthProvider = ({ children }) => {
       };
 
       console.log("📤 Sending login request:", loginData);
-      
+
       const response = await api.post("/auth/login", loginData);
-      
+
       console.log("✅ Login response:", response.data);
 
       const { accessToken, tokenType, user } = response.data;
@@ -158,12 +158,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("tokenType", tokenType || "Bearer");
       localStorage.setItem("user", JSON.stringify(user));
-      
+
       // Set default auth header for future requests
       api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-      
+
       setUser(user);
-      
+
       console.log("✅ Login successful for:", user.email);
 
       return {
@@ -172,9 +172,9 @@ export const AuthProvider = ({ children }) => {
       };
     } catch (err) {
       console.error("❌ Login error:", err);
-      
+
       let errorMessage = "Login failed. ";
-      
+
       if (err.response) {
         // Server responded with error
         if (err.response.status === 401) {
@@ -195,7 +195,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
       return {
         success: false,
@@ -216,33 +216,47 @@ export const AuthProvider = ({ children }) => {
 
   const hasRole = (requiredRole) => {
     if (!user) return false;
-    
+
     const roleHierarchy = {
       'ADMIN': ['ADMIN', 'ANALYST', 'USER'],
       'ANALYST': ['ANALYST', 'USER'],
       'USER': ['USER']
     };
-    
+
     const userRole = user.role;
     const allowedRoles = roleHierarchy[userRole] || [];
-    
+
     return allowedRoles.includes(requiredRole.toUpperCase());
   };
 
   const getDashboardPath = () => {
     if (!user) return "/login";
-    
+
     const rolePath = {
       'ADMIN': '/admin-dashboard',
       'ANALYST': '/analyst-dashboard',
       'USER': '/user-dashboard'
     };
-    
+
     return rolePath[user.role] || "/";
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const response = await api.get("/auth/profile");
+      setUser(response.data);
+      localStorage.setItem("user", JSON.stringify(response.data));
+      console.log("✅ Profile fetched successfully:", response.data.email);
+      return { success: true, user: response.data };
+    } catch (err) {
+      console.error("❌ Profile fetch error:", err);
+      return { success: false, error: err.message };
+    }
   };
 
   const value = {
     user,
+    setUser,
     loading,
     error,
     register,
@@ -250,6 +264,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     hasRole,
     getDashboardPath,
+    fetchProfile,
     isAuthenticated: !!user
   };
 

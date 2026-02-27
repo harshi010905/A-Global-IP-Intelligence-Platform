@@ -6,10 +6,9 @@ import UserDashboard from "../Pages/UserDashboard";
 import AdminDashboard from "../Pages/AdminDashboard";
 import AnalystDashboard from "../Pages/AnalystDashboard";
 import ProtectedRoute from "./ProtectedRoute";
-import Search from "../Pages/Search";
 import IPDetails from "../Pages/IPDetails";
-import Alerts from "../Pages/Alerts";        
-import Analytics from "../Pages/Analytics";  
+import Alerts from "../Pages/Alerts";
+import Analytics from "../Pages/Analytics";
 import RegistrationChoice from "../Pages/RegistrationChoice";
 import AnalystRegistration from "../Pages/AnalystRegistration";
 import AdminRequestManagement from "../Pages/AdminRequestManagement";
@@ -18,7 +17,9 @@ import UserLogs from "../Pages/UserLogs.jsx";
 import Profile from "../Pages/Profile.jsx";
 import EditProfile from "../Pages/EditProfile.jsx";
 import UpdatePassword from "../Pages/UpdatePassword.jsx";
+import OAuth2Success from "../Pages/OAuth2Success";
 
+import SearchPage from "../Pages/SearchPage";
 
 const AppRoutes = () => {
   return (
@@ -27,11 +28,12 @@ const AppRoutes = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<RegistrationChoice />} />
+      <Route path="/oauth2-success" element={<OAuth2Success />} />
 
       <Route path="/register/user" element={<Register />} />
       <Route path="/register/analyst" element={<AnalystRegistration />} />
 
-      
+
       {/* Protected Routes */}
       <Route
         path="/profile"
@@ -60,8 +62,8 @@ const AppRoutes = () => {
       <Route
         path="/search"
         element={
-          <ProtectedRoute role="ANALYST">
-            <Search />
+          <ProtectedRoute>
+            <SearchPage />
           </ProtectedRoute>
         }
       />
@@ -77,7 +79,7 @@ const AppRoutes = () => {
         path="/alerts"
         element={
           <ProtectedRoute>
-            <Alerts />          
+            <Alerts />
           </ProtectedRoute>
         }
       />
@@ -105,7 +107,7 @@ const AppRoutes = () => {
         path="/analytics"
         element={
           <ProtectedRoute role="ANALYST">
-            <Analytics />       
+            <Analytics />
           </ProtectedRoute>
         }
       />
@@ -123,7 +125,7 @@ const AppRoutes = () => {
         path="/admin/users"
         element={
           <ProtectedRoute role="ADMIN">
-            <div><UserLogs/></div>
+            <div><UserLogs /></div>
           </ProtectedRoute>
         }
       />
@@ -132,19 +134,19 @@ const AppRoutes = () => {
         path="/admin/logs"
         element={
           <ProtectedRoute role="ADMIN">
-            <div><SystemLogs/></div>
+            <div><SystemLogs /></div>
           </ProtectedRoute>
         }
       />
 
-<Route
-  path="/admin/analyst-requests"
-  element={
-    <ProtectedRoute role="ADMIN">
-      <AdminRequestManagement />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/admin/analyst-requests"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <AdminRequestManagement />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<div>404 - Page Not Found</div>} />
     </Routes>

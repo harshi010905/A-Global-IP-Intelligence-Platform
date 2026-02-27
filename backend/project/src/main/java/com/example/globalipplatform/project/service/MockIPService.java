@@ -24,34 +24,33 @@ public class MockIPService implements IPService {
 
     @Autowired
     private PatentRepository patentRepository;
-    
+
     @Autowired
     private TrademarkRepository trademarkRepository;
-    
+
     @Override
     public PatentSearchResponse searchPatents(PatentSearchRequest request, Pageable pageable) {
         Page<Patent> patentPage;
-        
+
         if (request.getQuery() != null && !request.getQuery().isEmpty()) {
             patentPage = patentRepository.searchPatentsSimple(request.getQuery(), pageable);
         } else {
             patentPage = patentRepository.findAll(pageable);
         }
-        
+
         List<PatentDTO> patents = patentPage.getContent()
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
-        
+
         return new PatentSearchResponse(
-            patents,
-            patentPage.getTotalElements(),
-            patentPage.getTotalPages(),
-            patentPage.getNumber(),
-            patentPage.getSize()
-        );
+                patents,
+                patentPage.getTotalElements(),
+                patentPage.getTotalPages(),
+                patentPage.getNumber(),
+                patentPage.getSize());
     }
-    
+
     @Override
     @Cacheable(value = "patents", key = "#id")
     public PatentDTO getPatentById(Long id) {
@@ -59,7 +58,7 @@ public class MockIPService implements IPService {
                 .orElseThrow(() -> new RuntimeException("Patent not found with id: " + id));
         return convertToDTO(patent);
     }
-    
+
     @Override
     public PatentDTO getPatentByNumber(String patentNumber) {
         Patent patent = patentRepository.findByAssetNumber(patentNumber);
@@ -68,40 +67,100 @@ public class MockIPService implements IPService {
         }
         return convertToDTO(patent);
     }
-    
+
     @Override
     public List<String> getAllTechnologies() {
         return patentRepository.findAllTechnologies();
     }
-    
+
     @Override
     public List<String> getAllPatentJurisdictions() {
         return patentRepository.findAllJurisdictions();
     }
-    
+
     @Override
     public List<String> getAllPatentStatuses() {
         return patentRepository.findAllStatuses();
     }
-    
+
     @Override
     public TrademarkSearchResponse searchTrademarks(TrademarkSearchRequest request, Pageable pageable) {
-        Page<Trademark> trademarkPage = trademarkRepository.findAll(pageable);
-        
-        List<TrademarkDTO> trademarks = trademarkPage.getContent()
-                .stream()
+        // Fetch all trademarks and filter in Java — avoids JPQL dialect issues
+        List<Trademark> all = trademarkRepository.findAll();
+
+        String query = request.getQuery() != null ? request.getQuery().toLowerCase().trim() : null;
+        String jurisdiction = request.getJurisdiction();
+        String status = request.getStatus();
+        String owner = request.getOwner() != null ? request.getOwner().toLowerCase().trim() : null;
+        String niceClass = request.getNiceClass();
+        Integer yearFrom = request.getYearFrom();
+        Integer yearTo = request.getYearTo();
+
+        List<Trademark> filtered = all.stream().filter(t -> {
+            // query filter — matches mark, assignee, or goodsServices
+            if (query != null && !query.isEmpty()) {
+                boolean matches = false;
+                if (t.getMark() != null && t.getMark().toLowerCase().contains(query))
+                    matches = true;
+                if (t.getAssignee() != null && t.getAssignee().toLowerCase().contains(query))
+                    matches = true;
+                if (t.getGoodsServices() != null && t.getGoodsServices().toLowerCase().contains(query))
+                    matches = true;
+                if (!matches)
+                    return false;
+            }
+            // jurisdiction filter
+            if (jurisdiction != null && !jurisdiction.isEmpty()) {
+                if (!jurisdiction.equalsIgnoreCase(t.getJurisdiction()))
+                    return false;
+            }
+            // status filter
+            if (status != null && !status.isEmpty()) {
+                if (!status.equalsIgnoreCase(t.getStatus()))
+                    return false;
+            }
+            // owner filter
+            if (owner != null && !owner.isEmpty()) {
+                if (t.getAssignee() == null || !t.getAssignee().toLowerCase().contains(owner))
+                    return false;
+            }
+            // niceClass filter
+            if (niceClass != null && !niceClass.isEmpty()) {
+                if (t.getNiceClasses() == null || !t.getNiceClasses().contains(niceClass))
+                    return false;
+            }
+            // year range filter
+            if (t.getFilingDate() != null) {
+                int year = t.getFilingDate().getYear();
+                if (yearFrom != null && year < yearFrom)
+                    return false;
+                if (yearTo != null && year > yearTo)
+                    return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
+
+        // Manual pagination
+        int pageNum = pageable.getPageNumber();
+        int pageSize = pageable.getPageSize();
+        int total = filtered.size();
+        int totalPages = (int) Math.ceil((double) total / pageSize);
+        int fromIdx = Math.min(pageNum * pageSize, total);
+        int toIdx = Math.min(fromIdx + pageSize, total);
+        List<Trademark> page = filtered.subList(fromIdx, toIdx);
+
+        List<TrademarkDTO> trademarks = page.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
-        
+
         return new TrademarkSearchResponse(
-            trademarks,
-            trademarkPage.getTotalElements(),
-            trademarkPage.getTotalPages(),
-            trademarkPage.getNumber(),
-            trademarkPage.getSize()
-        );
+                trademarks,
+                total,
+                totalPages,
+                pageNum,
+                pageSize);
     }
-    
+
     @Override
     @Cacheable(value = "trademarks", key = "#id")
     public TrademarkDTO getTrademarkById(Long id) {
@@ -109,7 +168,7 @@ public class MockIPService implements IPService {
                 .orElseThrow(() -> new RuntimeException("Trademark not found with id: " + id));
         return convertToDTO(trademark);
     }
-    
+
     @Override
     public TrademarkDTO getTrademarkByNumber(String trademarkNumber) {
         Trademark trademark = trademarkRepository.findByAssetNumber(trademarkNumber);
@@ -118,37 +177,37 @@ public class MockIPService implements IPService {
         }
         return convertToDTO(trademark);
     }
-    
+
     @Override
     public List<String> getAllTrademarkJurisdictions() {
         return trademarkRepository.findAllJurisdictions();
     }
-    
+
     @Override
     public List<String> getAllTrademarkStatuses() {
         return trademarkRepository.findAllStatuses();
     }
-    
+
     @Override
     public long getTotalPatentCount() {
         return patentRepository.count();
     }
-    
+
     @Override
     public long getTotalTrademarkCount() {
         return trademarkRepository.count();
     }
-    
+
     @Override
     public long getPatentCountByJurisdiction(String jurisdiction) {
         return 0; // Simplified for now
     }
-    
+
     @Override
     public long getPatentCountByStatus(String status) {
         return 0; // Simplified for now
     }
-    
+
     private PatentDTO convertToDTO(Patent patent) {
         PatentDTO dto = new PatentDTO();
         dto.setId(patent.getId());
@@ -180,7 +239,7 @@ public class MockIPService implements IPService {
         dto.setIsCorePatent(patent.getIsCorePatent());
         return dto;
     }
-    
+
     private TrademarkDTO convertToDTO(Trademark trademark) {
         TrademarkDTO dto = new TrademarkDTO();
         dto.setId(trademark.getId());

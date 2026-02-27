@@ -1,22 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "../components/layouts/DashboardLayout";
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Globe, 
-  PieChart,
+import axios from "axios";
+import {
+  BarChart3,
+  TrendingUp,
+  Globe,
   Calendar,
   Download,
-  Filter,
   FileText,
-  Activity
+  Activity,
+  Loader2
 } from "lucide-react";
+
+const API_BASE_URL = "http://localhost:8080/api";
+const getAuthHeader = () => {
+  const token = localStorage.getItem("accessToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 const Analytics = () => {
   const [timeRange, setTimeRange] = useState("6m");
   const [dataType, setDataType] = useState("patents");
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for charts
+  useEffect(() => {
+    const headers = getAuthHeader();
+    Promise.allSettled([
+      axios.get(`${API_BASE_URL}/analyst/analytics`, { headers }),
+      axios.get(`${API_BASE_URL}/analyst/reports`, { headers }),
+    ]).then(([analyticsRes, reportsRes]) => {
+      if (analyticsRes.status === "fulfilled") {
+        setAnalyticsData(analyticsRes.value.data);
+      }
+      if (reportsRes.status === "fulfilled") {
+        const reportsPayload = reportsRes.value.data;
+        // Backend returns { reports: [...] }
+        setReports(Array.isArray(reportsPayload) ? reportsPayload : (reportsPayload?.reports || []));
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  // Fallback mock chart data (used when backend has no trend arrays)
   const filingTrends = {
     patents: [45, 52, 48, 61, 58, 72, 68, 82, 78, 85, 92, 88],
     trademarks: [23, 28, 25, 32, 35, 38, 42, 45, 48, 52, 55, 58],
@@ -47,16 +74,28 @@ const Analytics = () => {
     { status: "Expired", count: 62, percentage: 8, color: "bg-red-500" }
   ];
 
-  const recentReports = [
-    { id: 1, name: "Q1 2026 Patent Landscape Report", date: "2026-01-15", type: "PDF", size: "2.4 MB" },
-    { id: 2, name: "Competitor Analysis - MedTech Corp", date: "2026-01-10", type: "Excel", size: "1.8 MB" },
-    { id: 3, name: "Semiconductor Technology Trends", date: "2025-12-28", type: "PDF", size: "3.1 MB" }
-  ];
+  // Summary card values — prefer backend data, fallback to mock counts
+  const totalFilings = analyticsData?.totalPatents != null && analyticsData?.totalTrademarks != null
+    ? analyticsData.totalPatents + analyticsData.totalTrademarks
+    : 758;
+  const activePatents = analyticsData?.totalPatents ?? 342;
+  const pendingApplications = analyticsData?.totalTrademarks ?? 256;
+  const jurisdictionsCount = 12;
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 size={36} className="animate-spin text-blue-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        
+
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -67,7 +106,7 @@ const Analytics = () => {
               Comprehensive IP intelligence and trend analysis
             </p>
           </div>
-          
+
           <div className="flex gap-3">
             <select
               value={timeRange}
@@ -79,7 +118,7 @@ const Analytics = () => {
               <option value="6m">Last 6 Months</option>
               <option value="1y">Last Year</option>
             </select>
-            
+
             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm">
               <Download size={16} />
               Export Report
@@ -87,14 +126,14 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* Summary Cards */}
+        {/* Summary Cards — real backend data */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Filings</p>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">758</h3>
-                <p className="text-xs text-green-600 mt-1">↑ 12% vs last period</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{totalFilings}</h3>
+                <p className="text-xs text-green-600 mt-1">↑ Patents + Trademarks</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
                 <FileText size={24} className="text-blue-600" />
@@ -105,9 +144,9 @@ const Analytics = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Active Patents</p>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">342</h3>
-                <p className="text-xs text-green-600 mt-1">↑ 8% vs last period</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Patents</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{activePatents}</h3>
+                <p className="text-xs text-green-600 mt-1">Active in database</p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
                 <Activity size={24} className="text-green-600" />
@@ -118,9 +157,9 @@ const Analytics = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Pending Applications</p>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">256</h3>
-                <p className="text-xs text-yellow-600 mt-1">↑ 5% vs last period</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Trademarks</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{pendingApplications}</h3>
+                <p className="text-xs text-yellow-600 mt-1">Active in database</p>
               </div>
               <div className="p-3 bg-yellow-100 rounded-lg">
                 <BarChart3 size={24} className="text-yellow-600" />
@@ -131,9 +170,9 @@ const Analytics = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Jurisdictions</p>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">12</h3>
-                <p className="text-xs text-blue-600 mt-1">↑ 2 new this year</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Active Monitors</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{analyticsData?.activeMonitors ?? jurisdictionsCount}</h3>
+                <p className="text-xs text-blue-600 mt-1">Watching</p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
                 <Globe size={24} className="text-purple-600" />
@@ -153,39 +192,37 @@ const Analytics = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => setDataType("patents")}
-                  className={`px-3 py-1 rounded-lg text-xs ${
-                    dataType === "patents" 
-                      ? "bg-blue-600 text-white" 
+                  className={`px-3 py-1 rounded-lg text-xs ${dataType === "patents"
+                      ? "bg-blue-600 text-white"
                       : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                  }`}
+                    }`}
                 >
                   Patents
                 </button>
                 <button
                   onClick={() => setDataType("trademarks")}
-                  className={`px-3 py-1 rounded-lg text-xs ${
-                    dataType === "trademarks" 
-                      ? "bg-blue-600 text-white" 
+                  className={`px-3 py-1 rounded-lg text-xs ${dataType === "trademarks"
+                      ? "bg-blue-600 text-white"
                       : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                  }`}
+                    }`}
                 >
                   Trademarks
                 </button>
               </div>
             </div>
-            
+
             {/* Simple Bar Chart Representation */}
             <div className="space-y-3">
               {filingTrends.months.slice(-6).map((month, index) => {
                 const value = filingTrends[dataType][index + 6];
                 const max = Math.max(...filingTrends[dataType]);
                 const percentage = (value / max) * 100;
-                
+
                 return (
                   <div key={month} className="flex items-center gap-3">
                     <span className="text-xs text-gray-500 w-8">{month}</span>
                     <div className="flex-1 h-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-blue-600 rounded-full"
                         style={{ width: `${percentage}%` }}
                       />
@@ -204,7 +241,7 @@ const Analytics = () => {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
               Status Distribution
             </h2>
-            
+
             <div className="space-y-4">
               {statusDistribution.map((item) => (
                 <div key={item.status}>
@@ -215,7 +252,7 @@ const Analytics = () => {
                     </span>
                   </div>
                   <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className={`h-full ${item.color} rounded-full`}
                       style={{ width: `${item.percentage}%` }}
                     />
@@ -247,7 +284,7 @@ const Analytics = () => {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
               Top Jurisdictions
             </h2>
-            
+
             <div className="space-y-4">
               {topJurisdictions.map((jurisdiction) => (
                 <div key={jurisdiction.country}>
@@ -258,7 +295,7 @@ const Analytics = () => {
                     </span>
                   </div>
                   <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-purple-600 rounded-full"
                       style={{ width: `${jurisdiction.percentage}%` }}
                     />
@@ -273,7 +310,7 @@ const Analytics = () => {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
               Top Assignees
             </h2>
-            
+
             <div className="space-y-4">
               {topAssignees.map((assignee) => (
                 <div key={assignee.name} className="flex items-center justify-between">
@@ -296,7 +333,7 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* Recent Reports */}
+        {/* Recent Reports — real backend data */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -306,27 +343,31 @@ const Analytics = () => {
               Generate New Report
             </button>
           </div>
-          
-          <div className="space-y-3">
-            {recentReports.map((report) => (
-              <div key={report.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition">
-                <div className="flex items-center gap-3">
-                  <FileText size={20} className="text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {report.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Generated on {report.date} • {report.size}
-                    </p>
+
+          {reports.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-sm italic">No reports available yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {reports.map((report, idx) => (
+                <div key={report.id ?? idx} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition">
+                  <div className="flex items-center gap-3">
+                    <FileText size={20} className="text-gray-400" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {report.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Generated on {report.date} {report.size ? `• ${report.size}` : ""}
+                      </p>
+                    </div>
                   </div>
+                  <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg">
+                    <Download size={16} className="text-gray-500" />
+                  </button>
                 </div>
-                <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg">
-                  <Download size={16} className="text-gray-500" />
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>
