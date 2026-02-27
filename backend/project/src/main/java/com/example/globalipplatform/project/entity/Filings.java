@@ -18,9 +18,21 @@ public class Filings {
     private long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ip_asset_id",nullable = false)
+    @JoinColumn(name = "patent_id", nullable = true)
     @JsonIgnore
-    private IpAsset ipAsset;
+    private Patent patent;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trademark_id", nullable = true)
+    @JsonIgnore
+    private Trademark trademark;
+
+    @Transient
+    public String getAssetType() {
+        if (patent != null) return "PATENT";
+        if (trademark != null) return "TRADEMARK";
+        return null;
+    }
 
    private LocalDateTime date=LocalDateTime.now();
 

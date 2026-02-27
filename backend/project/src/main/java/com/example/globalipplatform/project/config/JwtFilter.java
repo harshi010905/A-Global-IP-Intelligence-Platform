@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -28,6 +30,15 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JWTService jwtService;
     private final MyUserDetailsService userDetailsService;
+
+    // List of public paths that don't need JWT validation
+    private final List<String> publicPaths = Arrays.asList(
+        "/api/auth/",
+        "/api/analyst-registration/",
+        "/oauth2/",
+        "/public/",
+        "/api/test/public"
+    );
 
     public JwtFilter(JWTService jwtService, MyUserDetailsService userDetailsService) {
         this.jwtService = jwtService;
@@ -41,40 +52,66 @@ public class JwtFilter extends OncePerRequestFilter {
             @NonNull FilterChain chain)
             throws ServletException, IOException {
 
+        String requestPath = request.getServletPath();
+        logger.debug("Processing request: {} with method: {}", requestPath, request.getMethod());
 
-        // In JwtFilter.java, add this at the beginning of doFilterInternal
-String requestPath = request.getServletPath();
-if (requestPath.startsWith("/uploads/") || requestPath.startsWith("/api/files/")) {
-    // For file access, check if token is in URL
-    String token = request.getParameter("token");
-    if (token != null && !token.isEmpty()) {
-        // Process token from URL parameter
-        try {
-            String email = jwtService.extractUsername(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            if (jwtService.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
-        } catch (Exception e) {
-            logger.error("Error validating token from URL: {}", e.getMessage());
-        }
-    }
-}
-
-
-        if (request.getServletPath().contains("/api/auth/")) {
+        // Handle preflight OPTIONS requests
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
             chain.doFilter(request, response);
             return;
         }
 
+        // Check if this is a public path that doesn't need authentication
+        for (String publicPath : publicPaths) {
+            if (requestPath.startsWith(publicPath)) {
+                logger.debug("Public path accessed: {}, skipping authentication", requestPath);
+                chain.doFilter(request, response);
+                return;
+            }
+        }
+
+        // Handle file access with token in URL parameter
+        if (requestPath.startsWith("/uploads/") || requestPath.startsWith("/api/files/")) {
+            String token = request.getParameter("token");
+            if (token != null && !token.isEmpty()) {
+                try {
+                    String email = jwtService.extractUsername(token);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                    if (jwtService.validateToken(token, userDetails)) {
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                        logger.debug("Authenticated file access for user: {}", email);
+                    }
+                } catch (Exception e) {
+                    logger.error("Error validating token from URL: {}", e.getMessage());
+                }
+            }
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // Extract JWT token from Authorization header
         final String authHeader = request.getHeader("Authorization");
         
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            logger.warn("No Bearer token found in Authorization header for path: {}", requestPath);
+            
+            // Instead of letting it pass, set unauthorized for protected endpoints
+            if (requestPath.startsWith("/api/ip/") || requestPath.startsWith("/api/admin/") || 
+                requestPath.startsWith("/api/analyst/") || requestPath.startsWith("/Users/") ||
+                requestPath.startsWith("/Admin/")) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"Authentication required. Please provide a valid JWT token.\"}");
+                return;
+            }
+            
             chain.doFilter(request, response);
             return;
         }
@@ -84,25 +121,30 @@ if (requestPath.startsWith("/uploads/") || requestPath.startsWith("/api/files/")
 
         try {
             email = jwtService.extractUsername(token);
+            logger.debug("Extracted email from token: {}", email);
         } catch (ExpiredJwtException e) {
             logger.error("JWT token is expired: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Token expired");
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Token expired. Please login again.\"}");
             return;
         } catch (MalformedJwtException | SignatureException e) {
             logger.error("Invalid JWT token: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid token");
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Invalid token format.\"}");
             return;
         } catch (Exception e) {
             logger.error("Error processing JWT token: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Authentication failed");
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Authentication failed.\"}");
             return;
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
+                // Try to load user from database
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
                 
                 if (jwtService.validateToken(token, userDetails)) {
@@ -113,9 +155,16 @@ if (requestPath.startsWith("/uploads/") || requestPath.startsWith("/api/files/")
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    logger.debug("Authenticated user: {} with role: {}", email, userDetails.getAuthorities());
+                    logger.info("✅ Successfully authenticated user: {} with roles: {}", email, userDetails.getAuthorities());
+                } else {
+                    logger.warn("Token validation failed for user: {}", email);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Token validation failed.\"}");
+                    return;
                 }
             } catch (UsernameNotFoundException ex) {
+                // Try OAuth2 user
                 try {
                     String role = jwtService.extractRole(token);
                     UserPrincipal userPrincipal = new UserPrincipal(email, Role.valueOf(role));
@@ -128,10 +177,14 @@ if (requestPath.startsWith("/uploads/") || requestPath.startsWith("/api/files/")
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
-                        logger.debug("Authenticated OAuth2 user: {} with role: {}", email, role);
+                        logger.info("✅ Successfully authenticated OAuth2 user: {} with role: {}", email, role);
                     }
                 } catch (Exception e) {
                     logger.error("Failed to authenticate OAuth2 user: {}", e.getMessage());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"User not found.\"}");
+                    return;
                 }
             }
         }

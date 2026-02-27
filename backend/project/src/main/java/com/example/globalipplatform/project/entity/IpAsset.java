@@ -1,61 +1,65 @@
 package com.example.globalipplatform.project.entity;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
-
+import lombok.Data;
 import java.time.LocalDateTime;
-import java.util.List;
 
-@Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
-@Table(name = "ip_assets")
-public class IpAsset {
-
+@Data
+@MappedSuperclass
+public abstract class IpAsset {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
-    private String type;
-
-    private String asset_number;
-
+    private Long id;
+    
+    @Column(length = 255)
+    private String assetNumber;
+    
+    @Column(length = 500)
     private String title;
-
-    private String assignee;
-
-    private String inventor;
-
+    
+    @Column(length = 1000)
+    private String description;
+    
+    @Column(length = 100)
     private String jurisdiction;
-
-    private LocalDateTime filing_date = LocalDateTime.now();
-
+    
+    private LocalDateTime filingDate;
+    private LocalDateTime publicationDate;
+    private LocalDateTime grantDate;
+    
+    @Column(length = 50)
     private String status;
-
-    @Column(name = "class")
-    private String assetClass;
-
-
-    private String details;
-
-    private String api_source;
-
-    private LocalDateTime last_updated = LocalDateTime.now();
-
-    @OneToMany(mappedBy = "ipAsset", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<Subscription> subscription;
-
-    @OneToMany(mappedBy = "ipAsset",cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<Notification> notifications;
-
-    @OneToMany(mappedBy = "ipAsset",cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<Filings> filings;
-
+    
+    @Column(length = 5000)
+    private String abstractText;
+    
+    @Column(length = 255)
+    private String assignee;
+    
+    @Column(length = 100)
+    private String assigneeCountry;
+    
+    @Column(length = 1000)
+    private String ipcClasses;
+    
+    @Column(length = 1000)
+    private String cpcClasses;
+    
+    @Column(length = 100)
+    private String legalStatus;
+    
+    private Boolean annualFeePaid;
+    private LocalDateTime nextFeeDate;
+    
+    @Column(length = 100)
+    private String technology;
+    
+    private Integer citationCount;
+    
+    @Column(length = 255)
+    private String familyId;
+    
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

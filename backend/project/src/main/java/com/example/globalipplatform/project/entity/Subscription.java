@@ -24,10 +24,15 @@ public class Subscription {
     @JsonIgnore
     private User user;
 
-    @ManyToOne(fetch =FetchType.LAZY )
-    @JoinColumn(name="ip_asset_id",nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patent_id", nullable = true)
     @JsonIgnore
-    private IpAsset ipAsset;
+    private Patent patent;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trademark_id", nullable = true)
+    @JsonIgnore
+    private Trademark trademark;
 
     private LocalDateTime created_at= LocalDateTime.now();
 }

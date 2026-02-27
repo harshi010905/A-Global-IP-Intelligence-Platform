@@ -24,9 +24,14 @@ public class Notification {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ip_asset_id",nullable = false)
+    @JoinColumn(name = "patent_id", nullable = true)
     @JsonIgnore
-    private IpAsset ipAsset;
+    private Patent patent;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trademark_id", nullable = true)
+    @JsonIgnore
+    private Trademark trademark;
 
     private String message;
 

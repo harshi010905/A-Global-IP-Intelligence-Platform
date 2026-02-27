@@ -2,7 +2,6 @@ package com.example.globalipplatform.project.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -16,6 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 
 import java.util.Arrays;
 
@@ -38,7 +38,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // ✅ Public endpoints - ORDER MATTERS! Put specific paths first
+                // Public endpoints - no authentication required
                 .requestMatchers(
                     "/api/analyst-registration/test",
                     "/api/analyst-registration/submit",
@@ -47,21 +47,24 @@ public class SecurityConfig {
                     "/oauth2/**",
                     "/public/**",
                     "/api/test/public",
-                     "/api/files/**", 
-                     "/uploads/**"
+                    "/api/files/**", 
+                    "/uploads/**"
                 ).permitAll()
+
+                // IP endpoints - require authentication but any authenticated user can access
+                .requestMatchers("/api/ip/**").authenticated()
                 
-                // User endpoints
+                // User endpoints - require USER, ANALYST, or ADMIN role
                 .requestMatchers("/api/test/user").hasAnyRole("USER", "ANALYST", "ADMIN")
                 .requestMatchers("/Users/**").hasAnyRole("USER", "ANALYST", "ADMIN")
                 .requestMatchers("/api/user/**").hasAnyRole("USER", "ANALYST", "ADMIN")
                 
-                // Analyst endpoints
+                // Analyst endpoints - require ANALYST or ADMIN role
                 .requestMatchers("/api/analyst/**").hasAnyRole("ANALYST", "ADMIN")
                 .requestMatchers("/api/analytics/**").hasAnyRole("ANALYST", "ADMIN")
                 .requestMatchers("/api/reports/**").hasAnyRole("ANALYST", "ADMIN")
                 
-                // Admin endpoints
+                // Admin endpoints - require ADMIN role only
                 .requestMatchers("/Admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
@@ -71,10 +74,11 @@ public class SecurityConfig {
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            // Disable OAuth2 login for API endpoints
+            // Configure OAuth2 login
             .oauth2Login(oauth -> oauth
                 .successHandler(oAuth2SuccessHandler)
             )
+            // Add JWT filter before the default authentication filter
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
