@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import SearchBar from "../components/SearchBar";
 import FiltersPanel from "../components/FiltersPanel";
 import ResultsTable from "../components/ResultsTable";
+import DashboardLayout from "../components/layouts/DashboardLayout";
 
 const Search = () => {
   const [query, setQuery] = useState("");
@@ -74,7 +75,8 @@ const Search = () => {
   }, [query, filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#020617] text-white p-10">
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#020617] text-white p-10">
 
       <div className="mb-10">
         <h1 className="text-4xl font-bold">Global IP Search</h1>
@@ -97,6 +99,10 @@ const Search = () => {
 
       </div>
     </div>
+
+    </DashboardLayout>
+
+    
   );
 };
 

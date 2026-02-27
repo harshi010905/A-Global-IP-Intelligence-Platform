@@ -1,8 +1,7 @@
 import { useAuth } from "../../context/AuthContext";
-import { Bell, Search, ChevronDown, User } from "lucide-react";
+import { Bell, Search, ChevronDown, User, LogOut, Shield } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
 
 const Topbar = () => {
   const { user, logout } = useAuth();
@@ -17,96 +16,121 @@ const Topbar = () => {
     }
   };
 
-  // Get user initials for avatar
   const getUserInitials = () => {
     if (!user?.username) return "U";
     return user.username
       .split(" ")
-      .map(n => n[0])
+      .map((n) => n[0])
       .join("")
       .toUpperCase()
       .substring(0, 2);
   };
 
+  // Only render search bar for 'user' role
+  const isRegularUser = user?.role?.toLowerCase() === "user";
+
   return (
-    <div className="sticky top-0 z-40 h-16 backdrop-blur-lg bg-white/70 dark:bg-gray-950/70 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6">
+    <div className="sticky top-0 z-40 h-16 backdrop-blur-md bg-[#020617]/80 border-b border-slate-900 flex items-center justify-between px-6">
+      
+      {/* LEFT SECTION: Branding or Search */}
+      <div className="flex items-center gap-8">
+        {/* Responsive Branding (Hidden when sidebar is open, usually visible on mobile) */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <Shield size={20} className="text-blue-500 fill-blue-500/10" />
+          <span className="text-sm font-bold text-white tracking-tight">IP Intelligence</span>
+        </div>
 
-      {/* Search */}
-      <form onSubmit={handleSearch} className="hidden md:flex items-center bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg w-72">
-        <Search size={16} className="text-gray-500 mr-2" />
-        <input
-          type="text"
-          placeholder="Search patents, trademarks..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-transparent outline-none text-sm w-full text-gray-700 dark:text-gray-200"
-        />
-      </form>
+        {isRegularUser && (
+          <form 
+            onSubmit={handleSearch} 
+            className="hidden md:flex items-center bg-[#0f172a] border border-slate-800 px-4 py-1.5 rounded-xl w-96 focus-within:border-blue-500/40 focus-within:ring-1 focus-within:ring-blue-500/10 transition-all shadow-inner"
+          >
+            <Search size={16} className="text-slate-500 mr-3" />
+            <input
+              type="text"
+              placeholder="Search patents, trademarks, or case files..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent outline-none text-sm w-full text-slate-200 placeholder-slate-600 font-medium"
+            />
+          </form>
+        )}
+      </div>
 
-      {/* Right Section */}
-      <div className="flex items-center gap-6 ml-auto">
-
-        {/* Notifications */}
-        <div className="relative cursor-pointer group">
-          <Bell className="text-gray-600 dark:text-gray-300 group-hover:text-blue-600 transition" size={20} />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full">
+      {/* RIGHT SECTION: User Actions */}
+      <div className="flex items-center gap-5">
+        
+        {/* Global Notifications */}
+        <button className="relative p-2 rounded-lg hover:bg-slate-900 transition-colors group">
+          <Bell className="text-slate-400 group-hover:text-blue-400 transition-colors" size={20} />
+          <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-blue-600 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-[#020617] shadow-lg">
             3
           </span>
-        </div>
+        </button>
+
+        {/* Divider */}
+        <div className="h-8 w-[1px] bg-slate-800 mx-1" />
 
         {/* Profile Dropdown */}
         <div className="relative">
-          <div
+          <button
             onClick={() => setOpen(!open)}
-            className="flex items-center gap-3 cursor-pointer"
+            className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-900/50 transition-all group"
           >
-            <div className="w-9 h-9 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-full flex items-center justify-center font-semibold shadow-md">
+            <div className="w-9 h-9 bg-blue-600 text-white rounded-lg flex items-center justify-center font-black text-sm shadow-[0_0_15px_rgba(37,99,235,0.25)]">
               {getUserInitials()}
             </div>
-            <div className="hidden md:block text-left">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                {user?.username}
+            
+            <div className="hidden lg:block text-left">
+              <p className="text-[13px] font-bold text-slate-200 group-hover:text-white transition-colors leading-none mb-1">
+                {user?.username || "Guest User"}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {user?.role?.toLowerCase()}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 leading-none">
+                  {user?.role || "Inquiry"}
+                </p>
+              </div>
             </div>
-            <ChevronDown size={16} className="text-gray-500" />
-          </div>
+            
+            <ChevronDown size={14} className={`text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+          </button>
 
           {open && (
-            <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 z-50">
-              <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
-                <p className="font-medium">{user?.username}</p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
+            <>
+              {/* Backdrop to close dropdown */}
+              <div className="fixed inset-0 z-[-1]" onClick={() => setOpen(false)} />
+              
+              <div className="absolute right-0 mt-3 w-60 bg-[#1a1f2e] border border-slate-800 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="px-4 py-3 mb-1 border-b border-slate-800/50">
+                  <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Active Account</p>
+                  <p className="text-sm font-bold text-white truncate">{user?.username}</p>
+                  <p className="text-[11px] text-slate-500 truncate font-medium">{user?.email}</p>
+                </div>
+                
+                <button
+                  onClick={() => { setOpen(false); navigate("/profile"); }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-blue-600/10 hover:text-white flex items-center gap-3 transition-colors font-semibold"
+                >
+                  <User size={16} className="text-blue-500" />
+                  User Profile
+                </button>
+                
+                <button
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                    navigate("/");
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-rose-500 hover:bg-rose-500/5 flex items-center gap-3 transition-colors font-bold mt-1"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
               </div>
-              
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  navigate("/profile");
-                }}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2"
-              >
-                <User size={14} />
-                Profile
-              </button>
-              
-              <button
-                onClick={() => {
-                  logout();
-                  setOpen(false);
-                  navigate("/");
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-              >
-                <LogOut size={14} />
-                Logout
-              </button>
-            </div>
+            </>
           )}
         </div>
-
       </div>
     </div>
   );

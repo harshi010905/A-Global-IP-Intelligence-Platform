@@ -13,6 +13,9 @@ import Analytics from "../Pages/Analytics";
 import RegistrationChoice from "../Pages/RegistrationChoice";
 import AnalystRegistration from "../Pages/AnalystRegistration";
 import AdminRequestManagement from "../Pages/AdminRequestManagement";
+import SystemLogs from "../Pages/SystemLogs.jsx";
+import UserLogs from "../Pages/UserLogs.jsx";
+
 
 
 const AppRoutes = () => {
@@ -94,7 +97,7 @@ const AppRoutes = () => {
         path="/admin/users"
         element={
           <ProtectedRoute role="ADMIN">
-            <div>User Management (Coming Soon)</div>
+            <div><UserLogs/></div>
           </ProtectedRoute>
         }
       />
@@ -103,7 +106,7 @@ const AppRoutes = () => {
         path="/admin/logs"
         element={
           <ProtectedRoute role="ADMIN">
-            <div>System Logs (Coming Soon)</div>
+            <div><SystemLogs/></div>
           </ProtectedRoute>
         }
       />
