@@ -174,7 +174,7 @@ const Sidebar = () => {
           className="w-full flex items-center gap-4 p-3 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/5 transition-all group"
         >
           <LogOut size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-          {!collapsed && <span className="text-sm font-bold">System Sign Out</span>}
+          {!collapsed && <span className="text-sm font-bold">Logout</span>}
         </button>
       </div>
     </div>

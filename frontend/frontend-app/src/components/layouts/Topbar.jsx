@@ -3,6 +3,7 @@ import { Bell, Search, ChevronDown, User, LogOut, Shield } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
 const Topbar = () => {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);

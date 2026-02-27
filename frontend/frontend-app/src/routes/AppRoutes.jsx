@@ -15,7 +15,9 @@ import AnalystRegistration from "../Pages/AnalystRegistration";
 import AdminRequestManagement from "../Pages/AdminRequestManagement";
 import SystemLogs from "../Pages/SystemLogs.jsx";
 import UserLogs from "../Pages/UserLogs.jsx";
-
+import Profile from "../Pages/Profile.jsx";
+import EditProfile from "../Pages/EditProfile.jsx";
+import UpdatePassword from "../Pages/UpdatePassword.jsx";
 
 
 const AppRoutes = () => {
@@ -31,6 +33,30 @@ const AppRoutes = () => {
 
       
       {/* Protected Routes */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/edit"
+        element={
+          <ProtectedRoute>
+            <EditProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/update-password"
+        element={
+          <ProtectedRoute>
+            <UpdatePassword />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/search"
         element={
