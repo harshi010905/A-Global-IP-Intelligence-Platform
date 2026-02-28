@@ -22,13 +22,14 @@ public class RegistrationService {
 
     public UserResponse register(UserRequest request) {
 
-        if(userRepository.existsByEmail(request.getEmail())){
+        String email = request.getEmail().toLowerCase().trim();
+        if(userRepository.existsByEmail(email)){
             throw new RuntimeException("Email already exists");
         }
 
         User registerUser = new User();
         registerUser.setUsername(request.getUsername());
-        registerUser.setEmail(request.getEmail());
+        registerUser.setEmail(email);
         registerUser.setPassword(passwordEncoder.encode(request.getPassword()));
         
         // Default to USER role if not specified

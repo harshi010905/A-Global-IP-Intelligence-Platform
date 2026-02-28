@@ -22,10 +22,6 @@ public class TrademarkDTO {
     private String imageUrl;
     private Boolean isLogo;
     private String colorClaim;
-    private LocalDateTime renewalDate;
+    private String renewalDate; // String in entity — kept as String here
     private Boolean isCoreTrademark;
-    public void setRenewalDate(String renewalDate2) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setRenewalDate'");
-    }
 }
